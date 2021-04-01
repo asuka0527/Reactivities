@@ -7,17 +7,19 @@ interface Props {
   activity: Activity | undefined;
   closeForm: () => void;
   createOrEdit: (activity: Activity) => void;
+  submitting: boolean;
 }
 
 function ActivityForm({
   activity: seletctedActivity,
   closeForm,
   createOrEdit,
+  submitting,
 }: Props) {
   const initialState = seletctedActivity ?? {
     id: "",
     title: "",
-    category: " ",
+    category: "",
     description: "",
     date: "",
     city: "",
@@ -52,31 +54,32 @@ function ActivityForm({
         <Form.TextArea
           placeholder="Description"
           value={activity.description}
-          name="title"
+          name="description"
           onChange={handleInputChange}
         />
         <Form.Input
           placeholder="Category"
           value={activity.category}
-          name="title"
+          name="category"
           onChange={handleInputChange}
         />
         <Form.Input
+          type="date"
           placeholder="Date"
           value={activity.date}
-          name="title"
+          name="date"
           onChange={handleInputChange}
         />
         <Form.Input
           placeholder="City"
           value={activity.city}
-          name="title"
+          name="city"
           onChange={handleInputChange}
         />
         <Form.Input
           placeholder="Venue"
           value={activity.venue}
-          name="title"
+          name="venue"
           onChange={handleInputChange}
         />
         <Button
@@ -85,7 +88,13 @@ function ActivityForm({
           type="button"
           content="Cancel"
         />
-        <Button floated="right" positive type="submit" content="Submit" />
+        <Button
+          loading={submitting}
+          floated="right"
+          positive
+          type="submit"
+          content="Submit"
+        />
       </Form>
     </Segment>
   );
