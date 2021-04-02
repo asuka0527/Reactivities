@@ -22,6 +22,20 @@ export default class ActivityStore {
     );
   }
 
+  // GROUPING ACTIVITIES BY DATE
+  get groupedActivities() {
+    return Object.entries(
+      this.activitiesByDate.reduce((activities, activity) => {
+        // will represent the key for each object
+        const date = activity.date;
+        activities[date] = activities[date]
+          ? [...activities[date], activity]
+          : [activity];
+        return activities;
+      }, {} as { [key: string]: Activity[] })
+    );
+  }
+
   // bec we're are doing a promise with our agent we can make this an async function
   loadActivities = async () => {
     this.loading = true;
