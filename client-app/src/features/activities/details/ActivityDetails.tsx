@@ -1,5 +1,7 @@
 import { observer } from "mobx-react-lite";
-import React from "react";
+import React, { useEffect } from "react";
+import { useParams } from "react-router";
+import { Link } from "react-router-dom";
 import { Button, Card, Image } from "semantic-ui-react";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
 
@@ -9,12 +11,17 @@ function ActivityDetails() {
   const { activityStore } = useStore();
   const {
     selectedActivity: activity,
-    openForm,
-    cancelSelectedActivity,
+    loadActivity,
+    loadingInitial,
   } = activityStore;
+  const { id } = useParams<{ id: string }>();
+
+  useEffect(() => {
+    if (id) loadActivity(id);
+  }, [id, loadActivity]);
 
   //remedy for undefined error we get from activity
-  if (!activity) return <LoadingComponent inverted />;
+  if (loadingInitial || !activity) return <LoadingComponent inverted />;
 
   return (
     <Card fluid>
@@ -29,13 +36,15 @@ function ActivityDetails() {
       <Card.Content extra>
         <Button.Group>
           <Button
-            onClick={() => openForm(activity.id)}
+            as={Link}
+            to={`/manage/${activity.id}`}
             basic
             color="blue"
             content="Edit"
           ></Button>
           <Button
-            onClick={cancelSelectedActivity}
+            as={Link}
+            to="/activities"
             basic
             color="grey"
             content="Cancel"

@@ -1,35 +1,36 @@
-import React, { useEffect, useState } from "react";
-
-import { Activity } from "../models/activity";
 import Navbar from "./Navbar";
-
 import AcitivityDashboard from "../../features/activities/dashboard/AcitivityDashboard";
-import agent from "../api/agent";
-import LoadingComponent from "./LoadingComponent";
-import { useStore } from "../stores/store";
 import { Container } from "semantic-ui-react";
-
 import { observer } from "mobx-react-lite";
+import { Route, useLocation } from "react-router";
+import HomePage from "../../features/home/HomePage";
+import ActivityForm from "../../features/activities/form/ActivityForm";
+import ActivityDetails from "../../features/activities/details/ActivityDetails";
 
 function App() {
-  const { activityStore } = useStore();
-  // How to use created interfaces as a <Type Parameter>
-  const [activities, setActivities] = useState<Activity[]>([]);
+  // for create and Edit form - bec these both use the same component we have to past the key to let react know that something is changing
+  const location = useLocation();
 
-  const [submitting, setSubmmitting] = useState(false);
-
-  useEffect(() => {
-    activityStore.loadActivities();
-  }, [activityStore]);
-
-  if (activityStore.loadingInitial)
-    return <LoadingComponent inverted content="Loading app..." />;
   return (
     <>
-      <Navbar />
-      <Container style={{ marginTop: "7em" }}>
-        <AcitivityDashboard />
-      </Container>
+      <Route path="/" component={HomePage} exact />
+      <Route
+        path={"/(.+)"}
+        render={() => (
+          <>
+            <Navbar />
+            <Container style={{ marginTop: "7em" }}>
+              <Route path="/activities" component={AcitivityDashboard} exact />
+              <Route path="/activities/:id" component={ActivityDetails} />
+              <Route
+                key={location.key}
+                path={["/createActivity", "/manage/:id"]}
+                component={ActivityForm}
+              />
+            </Container>
+          </>
+        )}
+      />
     </>
   );
 }

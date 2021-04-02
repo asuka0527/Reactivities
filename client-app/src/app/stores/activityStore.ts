@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { Activity } from "../models/activity";
-import { v4 as uuid } from "uuid";
+
 export default class ActivityStore {
   // activities: Activity[] = [];
   // JS map object new Map <key, value>
@@ -24,14 +24,11 @@ export default class ActivityStore {
 
   // bec we're are doing a promise with our agent we can make this an async function
   loadActivities = async () => {
+    this.loading = true;
     try {
       const activities = await agent.Activities.list();
       activities.forEach((activity) => {
-        activity.date = activity.date.split("T")[0];
-        // populating the activities property in this class (redux - not mutable) (mobx - mutable)
-        // this.activities.push(activity);
-        ////// JS MAP
-        this.activityRegistry.set(activity.id, activity);
+        this.setActivity(activity);
       });
       this.setLoadingInitial(false);
     } catch (error) {
@@ -40,33 +37,70 @@ export default class ActivityStore {
     }
   };
 
+  // ROUTING
+  loadActivity = async (id: string) => {
+    let activity = this.getActivity(id);
+    if (activity) {
+      this.selectedActivity = activity;
+      return activity;
+    } else {
+      this.loading = true;
+      try {
+        activity = await agent.Activities.details(id);
+        this.setActivity(activity);
+        runInAction(() => {
+          this.selectedActivity = activity;
+        });
+
+        this.setLoadingInitial(false);
+        return activity;
+      } catch (error) {
+        console.log(error);
+        this.setLoadingInitial(false);
+      }
+    }
+  };
+
+  private setActivity = (activity: Activity) => {
+    activity.date = activity.date.split("T")[0];
+    // populating the activities property in this class (redux - not mutable) (mobx - mutable)
+    // this.activities.push(activity);
+    ////// JS MAP
+    this.activityRegistry.set(activity.id, activity);
+  };
+
+  //helper method
+  private getActivity = (id: string) => {
+    return this.activityRegistry.get(id);
+  };
+
   // instead of using runInAction, make an action for loadingInital state in this tick
   setLoadingInitial = (state: boolean) => {
     this.loadingInitial = state;
   };
 
-  selectActivity = (id: string) => {
-    // this.selectedActivity = this.activities.find((a) => a.id === id);
+  // selectActivity = (id: string) => {
+  //   // this.selectedActivity = this.activities.find((a) => a.id === id);
 
-    ////// JS MAP
-    this.selectedActivity = this.activityRegistry.get(id);
-  };
+  //   ////// JS MAP
+  //   this.selectedActivity = this.activityRegistry.get(id);
+  // };
 
-  cancelSelectedActivity = () => {
-    this.selectedActivity = undefined;
-  };
+  // cancelSelectedActivity = () => {
+  //   this.selectedActivity = undefined;
+  // };
 
-  openForm = (id?: string) => {
-    id ? this.selectActivity(id) : this.cancelSelectedActivity();
-    this.editMode = true;
-  };
+  // openForm = (id?: string) => {
+  //   id ? this.selectActivity(id) : this.cancelSelectedActivity();
+  //   this.editMode = true;
+  // };
   closeForm = () => {
     this.editMode = false;
   };
 
   createActivity = async (activity: Activity) => {
     this.loading = true;
-    activity.id = uuid();
+
     try {
       await agent.Activities.create(activity);
       //push newly created activity to actitivites[]
@@ -120,7 +154,6 @@ export default class ActivityStore {
         // this.activities = [...this.activities.filter((a) => a.id !== id)];
         ////// JS MAP
         this.activityRegistry.delete(id);
-        if (this.selectedActivity?.id === id) this.cancelSelectedActivity();
         this.loading = false;
       });
     } catch (error) {
