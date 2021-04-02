@@ -1,13 +1,21 @@
+import { observer } from "mobx-react-lite";
 import React from "react";
 import { Button, Card, Image } from "semantic-ui-react";
-import { Activity } from "../../../app/models/activity";
-interface Props {
-  activity: Activity;
-  cancelSelectActivity: () => void;
-  openForm: (id: string) => void;
-}
+import LoadingComponent from "../../../app/layout/LoadingComponent";
 
-function ActivityDetails({ activity, cancelSelectActivity, openForm }: Props) {
+import { useStore } from "../../../app/stores/store";
+
+function ActivityDetails() {
+  const { activityStore } = useStore();
+  const {
+    selectedActivity: activity,
+    openForm,
+    cancelSelectedActivity,
+  } = activityStore;
+
+  //remedy for undefined error we get from activity
+  if (!activity) return <LoadingComponent inverted />;
+
   return (
     <Card fluid>
       <Image src={`/assets/categoryImages/${activity.category}.jpg`} />
@@ -27,7 +35,7 @@ function ActivityDetails({ activity, cancelSelectActivity, openForm }: Props) {
             content="Edit"
           ></Button>
           <Button
-            onClick={cancelSelectActivity}
+            onClick={cancelSelectedActivity}
             basic
             color="grey"
             content="Cancel"
@@ -38,4 +46,4 @@ function ActivityDetails({ activity, cancelSelectActivity, openForm }: Props) {
   );
 }
 
-export default ActivityDetails;
+export default observer(ActivityDetails);
