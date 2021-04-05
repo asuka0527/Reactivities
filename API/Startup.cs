@@ -7,6 +7,8 @@ using API.Extensions;
 using FluentValidation.AspNetCore;
 using Application.Ativities;
 using API.Middleware;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace API
 {
@@ -28,10 +30,18 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
       // config- specify where the validation is coming from
-            services.AddControllers().AddFluentValidation(config => {
+            services.AddControllers(opt => 
+            {
+                // AUTH POLICY 
+                // Make sures EVERY ENDPOINT in our API REQUIRES AUTHENTICATION
+                var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+                opt.Filters.Add(new AuthorizeFilter(policy));
+
+            }).AddFluentValidation(config => {
             config.RegisterValidatorsFromAssemblyContaining<Create>();
             });
             services.AddApplicationServices(_config);
+            services.AddIdentityServices(_config);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline. 
@@ -52,6 +62,9 @@ namespace API
 
             app.UseRouting();
             app.UseCors("CorsPolicy");
+
+            //authentication
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

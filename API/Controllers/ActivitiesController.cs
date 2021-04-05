@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Application.Ativities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
 {
@@ -20,6 +21,8 @@ namespace API.Controllers
             return HandleResult(result);
         }
 
+
+        // [Authorize]
         [HttpGet("{id}")]
         //IActionResult lets us return HTTP response instead of TYPE of thing
         public async Task<IActionResult> GetActivity(Guid id)
