@@ -1,7 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Core;
 using AutoMapper;
 using Domain;
+using FluentValidation;
 using MediatR;
 using Persistence;
 
@@ -9,13 +11,24 @@ namespace Application.Ativities
 {
     public class Edit
     {
-        public class Command : IRequest
+        public class Command : IRequest<Result<Unit>>
         {
             // what we want to get from DB
             public Activity Activity { get; set; }
         }
 
-        public class Handler : IRequestHandler<Command>
+        // VALIDATION
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            // Constructor - specify the rules 
+            public CommandValidator()
+            {
+                // x is the Activity
+                // use the class Validator 
+                RuleFor(x => x.Activity).SetValidator(new ActivityValidator());
+            }
+        }
+        public class Handler : IRequestHandler<Command , Result<Unit>>
         {
             private readonly DataContext _context;
             private readonly IMapper _mapper;
@@ -25,10 +38,12 @@ namespace Application.Ativities
                 _context = context;
             }
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<Result<Unit>> Handle(Command request, CancellationToken cancellationToken)
             {
                 // Find the actitivy by Id from DB
                 var activity = await _context.Activities.FindAsync(request.Activity.Id);
+
+                if(activity == null) return null;
 
                 // Instead of this
                 // activity.Title = request.Activity.Title ?? activity.Title;
@@ -36,9 +51,11 @@ namespace Application.Ativities
                 //AutoMapper (Activity from body , Activity from database )   
                 _mapper.Map(request.Activity, activity);
 
-                await _context.SaveChangesAsync();
+                var result = await _context.SaveChangesAsync() > 0;
 
-                return Unit.Value;
+                if(!result) return Result<Unit>.Failure("Failed  to update activity");
+
+                return Result<Unit>.Success(Unit.Value);
             }
         }
     }
