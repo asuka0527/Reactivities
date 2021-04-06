@@ -25,7 +25,7 @@ namespace API.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
         }
-
+     [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
@@ -44,30 +44,31 @@ namespace API.Controllers
 
 
         }
-
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
             // check if email already exsit in DB
             if(await _userManager.Users.AnyAsync(x => x.Email == registerDto.Email))
             {
-                return BadRequest("Email taken");
+                ModelState.AddModelError("email", "Email is taken");
+                return ValidationProblem();
             }
                    // check if email already exsit in DB
-            if(await _userManager.Users.AnyAsync(x => x.UserName == registerDto.UserName))
+            if(await _userManager.Users.AnyAsync(x => x.UserName == registerDto.Username))
             {
-                return BadRequest("Username taken");
+                     ModelState.AddModelError("username", "Username is taken");
+                return ValidationProblem();
             }
 
             var user = new AppUser 
             {
                 DisplayName = registerDto.DisplayName,
                 Email = registerDto.Email,
-                UserName = registerDto.UserName,
+                UserName = registerDto.Username,
             
             };
-
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
+   var result = await _userManager.CreateAsync(user, registerDto.Password);
 
             if(result.Succeeded)
             {
@@ -95,7 +96,7 @@ namespace API.Controllers
                     DisplayName = user.DisplayName,
                     Image=null,
                     Token =_tokenService.CreateToken(user),
-                    UserName = user.UserName
+                    Username = user.UserName
                 };
         }
     }

@@ -2,7 +2,7 @@ import React from "react";
 import { Dimmer, Loader } from "semantic-ui-react";
 
 interface Props {
-  inverted: boolean;
+  inverted?: boolean;
   content?: string;
 }
 

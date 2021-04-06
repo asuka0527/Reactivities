@@ -18,7 +18,7 @@ function AcitivityDashboard() {
   }, [activityRegistry.size, loadActivities]);
 
   if (activityStore.loadingInitial)
-    return <LoadingComponent inverted content="Loading app..." />;
+    return <LoadingComponent inverted content="Loading activities..." />;
 
   return (
     <Grid>
